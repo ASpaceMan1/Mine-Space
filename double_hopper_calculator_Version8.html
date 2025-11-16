@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Double Hopper Clock Calculator (Java Edition)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* Animated darker green gradient background (moving) */
+    :root{
+      --panel-bg: rgba(255,255,255,0.04);
+      --panel-border: rgba(255,255,255,0.06);
+      --accent: #7bd389;
+      --accent-dark: #2f7f3c;
+      --glass: rgba(255,255,255,0.04);
+      --text: #ffffff;
+      --muted: rgba(255,255,255,0.85);
+      --card-bg: rgba(6, 30, 18, 0.6);
+    }
+
+    html,body{height:100%}
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing:antialiased;
+      background: linear-gradient(120deg, #03180b 0%, #052914 40%, #02491b 60%, #023a16 100%);
+      background-size: 300% 300%;
+      animation: gradientShift 18s linear infinite;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px;
+    }
+
+    @keyframes gradientShift {
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    /* subtle pixel/noise overlay */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background-image:
+        linear-gradient(transparent 90%, rgba(0,0,0,0.02) 100%),
+        radial-gradient(rgba(255,255,255,0.01) 1px, transparent 1px);
+      opacity:0.5;
+      mix-blend-mode:overlay;
+      pointer-events:none;
+    }
+
+    .wrap{
+      width: 980px;
+      max-width: 96%;
+      border-radius:14px;
+      padding:20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.45);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.03);
+      backdrop-filter: blur(8px) saturate(1.1);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* Minecrafty header */
+    h1 {
+      margin: 0 0 8px 0;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 20px;
+      letter-spacing: 1px;
+      color: var(--text);
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.7),
+        0 6px 18px rgba(0,0,0,0.45);
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .logo-block {
+      width:36px;
+      height:36px;
+      background: linear-gradient(180deg,#2ad06f,#1a8a44 60%);
+      border-radius:4px;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.45);
+      display:inline-block;
+      border:2px solid rgba(0,0,0,0.2);
+      flex: 0 0 36px;
+    }
+
+    /* small subtitle removed per request; keep minimal space */
+    .sub { display:none; }
+
+    form{
+      margin-top: 8px;
+    }
+
+    fieldset{
+      border: none;
+      margin: 0 0 12px 0;
+      padding: 0;
+    }
+
+    label{ display:block; margin:8px 0; font-weight:700; color:var(--text); font-size:13px }
+
+    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center }
+
+    input[type="number"]{
+      -webkit-appearance: none;
+      appearance:none;
+      border: none;
+      padding:10px 12px;
+      font-size:13px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      color: var(--text);
+      width:96px;
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.18), 0 6px 18px rgba(0,0,0,0.35);
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* darker, glassy buttons */
+    button {
+      font-weight:800;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.14));
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      box-shadow:
+        0 8px 0 rgba(0,0,0,0.45),
+        inset 0 1px 0 rgba(255,255,255,0.03);
+      font-size:13px;
+      min-width:120px;
+      background-image: linear-gradient(180deg, rgba(10,60,30,0.95), rgba(6,40,22,0.9));
+      backdrop-filter: blur(4px) saturate(1.1);
+      color: var(--text);
+    }
+    button:active{ transform:translateY(4px); box-shadow: 0 4px 0 rgba(0,0,0,0.45) }
+
+    /* style for Reset specifically to match Calculate but slightly cooler */
+    button[type="button"] {
+      background-image: linear-gradient(180deg, rgba(8,50,28,0.95), rgba(5,36,19,0.9));
+    }
+
+    .result {
+      margin-top:16px;
+      padding:14px;
+      border-radius:12px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.03);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.02);
+      color: var(--text);
+      font-size:14px;
+    }
+
+    /* Compact result card */
+    .card {
+      margin-top:14px;
+      padding:16px;
+      border-radius:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--text);
+      display:flex;
+      gap:16px;
+      align-items:center;
+      justify-content:space-between;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px) saturate(1.05);
+    }
+    .card-left { display:flex; gap:14px; align-items:center }
+    .card-icon {
+      width:76px;
+      height:76px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(20,80,40,0.95), rgba(6,40,22,0.9));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      font-size:18px;
+      color: var(--text);
+      border: 2px solid rgba(255,255,255,0.04);
+      box-shadow: inset 0 -4px 10px rgba(0,0,0,0.4);
+    }
+    .card-body { min-width: 420px; }
+    .card-row { display:flex; justify-content:space-between; gap:12px; margin-bottom:6px; font-weight:700; color:var(--text) }
+    .card-small { font-size:13px; font-weight:600; color:var(--muted) }
+    .card-actions { display:flex; gap:10px; align-items:center }
+
+    .pill {
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.04);
+      color:var(--text);
+      font-weight:800;
+      margin-left:8px;
+      font-size:12px;
+    }
+
+    /* hidden inputs */
+    .hidden { display:none !important; }
+
+    /* responsive */
+    @media (max-width:720px){
+      .row{ flex-direction:column; align-items:stretch }
+      input[type="number"]{ width:100% }
+      button{ width:100%; }
+      .card { flex-direction:column; align-items:stretch }
+      .card-body { min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="application" aria-label="Double Hopper Clock Calculator">
+    <h1><span class="logo-block" aria-hidden="true"></span>Double Hopper Clock Calculator<span class="pill">Java</span></h1>
+
+    <form id="form" onsubmit="return false;">
+      <fieldset>
+        <legend><strong>Target time</strong></legend>
+        <div class="row">
+          <label style="margin-bottom:6px;">Hours <input id="hours" type="number" min="0" value="0"></label>
+          <label style="margin-bottom:6px;">Minutes <input id="minutes" type="number" min="0" max="59" value="0"></label>
+          <label style="margin-bottom:6px;">Seconds <input id="seconds" type="number" min="0" max="59" value="0"></label>
+        </div>
+      </fieldset>
+
+      <!-- Hidden/internal-only settings (not shown in UI) -->
+      <input id="hopperTicks" class="hidden" type="number" value="8">
+      <input id="relayTicks" class="hidden" type="number" value="6">
+      <!-- physical maximum per hopper-stack arrangement: 64 × 5 = 320 per side -->
+      <input id="maxItems" class="hidden" type="number" value="320">
+      <!-- top minimum enforced, hidden -->
+      <input id="topMin" class="hidden" type="number" value="2">
+
+      <div class="row" style="margin-top:10px;">
+        <button id="calc">Calculate</button>
+        <button id="reset" type="button">Reset</button>
+      </div>
+    </form>
+
+    <!-- Compact result card (hidden initially) -->
+    <div id="resultCard" class="card" style="display:none;" aria-live="polite">
+      <div class="card-left">
+        <div class="card-icon" aria-hidden="true">⏱️</div>
+        <div class="card-body">
+          <div class="card-row"><div>Bottom items (B)</div><div id="cardB">—</div></div>
+          <div class="card-row"><div>Top items (T)</div><div id="cardT">—</div></div>
+          <div class="card-row"><div>Achieved time</div><div id="cardTime">—</div></div>
+          <div class="card-row"><div>Difference</div><div id="cardDiff">—</div></div>
+          <div class="card-small" id="cardNote">Top usable max is mandatory (maxItems − 1)</div>
+        </div>
+      </div>
+
+      <div class="card-actions" aria-hidden="true">
+        <!-- copy button removed as requested -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Utility helpers
+    function ticksToTime(ticks) {
+      const seconds = ticks / 20;
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      const rem = seconds - Math.floor(seconds);
+      const ms = Math.round(rem * 1000);
+      return { h, m, s, ms, totalSeconds: seconds };
+    }
+    function formatTimeTicks(ticks) {
+      if (!Number.isFinite(ticks)) return '—';
+      if (ticks < 0) ticks = 0;
+      const t = ticksToTime(ticks);
+      const hh = `${t.h}h`;
+      const mm = `${t.m}m`;
+      const ss = `${t.s}s`;
+      const ms = t.ms ? ` ${t.ms}ms` : '';
+      return `${hh} ${mm} ${ss}${ms} (${t.totalSeconds.toFixed(3)} s)`;
+    }
+
+    document.getElementById('calc').addEventListener('click', runCalc);
+    document.getElementById('reset').addEventListener('click', () => { location.reload(); });
+
+    function runCalc() {
+      const h = Number(document.getElementById('hours').value) || 0;
+      const m = Number(document.getElementById('minutes').value) || 0;
+      const s = Number(document.getElementById('seconds').value) || 0;
+
+      // Hidden/internal settings (kept in code, not shown)
+      const hopperTicks = Math.max(1, Math.floor(Number(document.getElementById('hopperTicks').value) || 8));
+      const relayTicks = Math.max(0, Math.floor(Number(document.getElementById('relayTicks').value) || 6));
+      const declaredMax = Math.max(2, Math.floor(Number(document.getElementById('maxItems').value) || 320));
+      const maxItems = declaredMax;
+
+      // Mandatory: top usable max = maxItems - 1 and top must be at least 2
+      const topUsableMax = Math.max(2, maxItems - 1);
+      const bottomMax = maxItems;
+      const topMin = Math.max(2, Math.floor(Number(document.getElementById('topMin').value) || 2));
+      const topMax = Math.max(topMin, topUsableMax);
+
+      // convert target time to ticks
+      const targetSeconds = h * 3600 + m * 60 + s;
+      const targetTicks = Math.round(targetSeconds * 20);
+
+      // search for best combo (only keep the single best result)
+      let best = null;
+
+      for (let B = 1; B <= bottomMax; B++) {
+        const base = B * hopperTicks + relayTicks; // ticks per top item
+        for (let T = topMin; T <= topMax; T++) {
+          const ticks = T * base;
+          const diff = Math.abs(ticks - targetTicks);
+          if (!best || diff < best.diff) {
+            best = { B, T, ticks, diff };
+          }
+        }
+      }
+
+      if (!best) {
+        // hide card if nothing found
+        document.getElementById('resultCard').style.display = 'none';
+        return;
+      }
+
+      // ensure top >= 2 (already enforced), recalc if needed
+      if (best.T < 2) {
+        best.T = 2;
+        best.ticks = best.T * (best.B * hopperTicks + relayTicks);
+        best.diff = Math.abs(best.ticks - targetTicks);
+      }
+
+      const percentError = (best.diff / Math.max(1, targetTicks)) * 100;
+
+      // Populate compact card
+      document.getElementById('cardB').textContent = best.B;
+      document.getElementById('cardT').textContent = best.T;
+      document.getElementById('cardTime').textContent = formatTimeTicks(best.ticks);
+      document.getElementById('cardDiff').textContent = `${best.diff} ticks (${(best.diff/20).toFixed(3)} s) — ${percentError.toFixed(6)}%`;
+
+      // show card
+      document.getElementById('resultCard').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
